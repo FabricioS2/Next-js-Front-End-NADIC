@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
-export default function AuthGuard({ children, requireAdmin = false }: { children: React.ReactNode; requireAdmin?: boolean }) {
+interface AuthGuardProps {
+  children: React.ReactNode;
+  requiredRole?: 'user' | 'admin';  // 'user' = comum, 'admin' = admin
+}
+
+export default function AuthGuard({ children, requiredRole }: AuthGuardProps) {
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -12,12 +17,17 @@ export default function AuthGuard({ children, requireAdmin = false }: { children
     const user = getCurrentUser();
     if (!user) {
       router.push("/login");
-    } else if (requireAdmin && user.role !== "admin") {
-      router.push("/dashboard");
+    } else if (requiredRole && user.role !== requiredRole) {
+      // Redireciona se o papel não corresponde
+      if (user.role === 'admin') {
+        router.push("/admin");
+      } else {
+        router.push("/dashboard");
+      }
     } else {
       setLoading(false);
     }
-  }, [requireAdmin, router]);
+  }, [requiredRole, router]);
 
   if (loading) return <div className="loading">Verificando acesso...</div>;
   return <>{children}</>;

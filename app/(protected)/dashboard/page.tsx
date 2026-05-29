@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { getCurrentUser, User } from "@/lib/auth";
 import api from "@/lib/api";
 import { useToast } from "@/components/ToastProvider";
+import AuthGuard from "@/components/AuthGuard";
 
 interface Artigo {
   id: number;
@@ -70,6 +71,7 @@ export default function DashboardPage() {
   if (!user) return <div className="loading">Carregando...</div>;
 
   return (
+    <AuthGuard requiredRole="user">
     <div className="main-overlay">
       <div className="content-wrapper">
         <div className="glass-card">
@@ -137,5 +139,6 @@ export default function DashboardPage() {
         </div>
       </div>
     </div>
+    </AuthGuard>
   );
 }
