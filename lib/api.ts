@@ -35,7 +35,7 @@
 // lib/api.ts
 import axios from 'axios';
 
-const USE_MOCK = true; // ← liga o modo de teste sem backend
+const USE_MOCK = false; // ← liga o modo de teste sem backend
 const MOCK_DELAY = 300; // ms
 
 const api = axios.create({

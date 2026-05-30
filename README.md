@@ -1,37 +1,266 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+Aqui está o `README.md` unificado para o projeto completo do Simpósio Coral Vivo, contendo tanto o frontend Next.js quanto o backend Django REST Framework.
 
-## Getting Started
+```markdown
+# Simpósio Coral Vivo – Plataforma completa (Frontend + Backend)
 
-First, run the development server:
+Plataforma para submissão de artigos e gestão de participantes do simpósio, desenvolvida com **Next.js 14** (frontend) e **Django REST Framework** (backend).
+
+---
+
+## 📦 Visão geral do projeto
+
+| Camada       | Tecnologia                     | Porta padrão |
+|--------------|--------------------------------|--------------|
+| Frontend     | Next.js 14 (App Router)        | 3000         |
+| Backend      | Django + DRF + JWT             | 8000         |
+| Banco de dados | SQLite (pode ser PostgreSQL) | -            |
+
+O frontend consome a API REST do backend, permitindo:
+- Inscrição de novos participantes (público)
+- Login com JWT
+- Submissão de artigos (PDF)
+- Dashboard pessoal do usuário
+- Painel administrativo completo
+
+---
+
+## 🚀 Como executar o projeto completo (frontend + backend)
+
+### Pré‑requisitos
+- Node.js 18+ ou 20+
+- Python 3.9+
+- npm ou yarn
+- (Opcional) Git
+
+---
+
+### 1. Backend (Django)
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Acesse a pasta do backend
+cd backend
+
+# Crie um ambiente virtual
+python -m venv venv
+source venv/bin/activate      # Linux/Mac
+# ou
+venv\Scripts\activate          # Windows
+
+# Instale as dependências
+pip install -r requirements.txt
+
+# Execute as migrações e crie o banco de dados
+python manage.py makemigrations api
+python manage.py migrate
+
+# Crie um superusuário (admin)
+python manage.py createsuperuser
+
+# Inicie o servidor
+python manage.py runserver
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+O backend estará disponível em `http://localhost:8000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 2. Frontend (Next.js)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abra um **novo terminal** e execute:
 
-## Learn More
+```bash
+# Acesse a pasta do frontend (raiz do projeto frontend)
+cd frontend
 
-To learn more about Next.js, take a look at the following resources:
+# Instale as dependências
+npm install
+# ou
+yarn install
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# Configure o ambiente (opcional)
+echo "NEXT_PUBLIC_API_URL=http://localhost:8000" > .env.local
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# Inicie o servidor de desenvolvimento
+npm run dev
+# ou
+yarn dev
+```
 
-## Deploy on Vercel
+O frontend estará disponível em `http://localhost:3000`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Agora você pode acessar a aplicação completa.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# Next-js-Front-End-NADIC
+---
+
+## 🗂️ Estrutura do projeto combinada
+
+```
+projeto-simposio/
+├── backend/                     # Django REST API
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── backend/
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── ...
+│   └── api/
+│       ├── models.py            # User (email/login) + Artigo
+│       ├── views.py             # Login, inscrição, artigos, admin
+│       ├── serializers.py
+│       ├── permissions.py
+│       ├── urls.py
+│       └── admin.py
+├── frontend/                    # Next.js aplicação
+│   ├── app/
+│   │   ├── (public)/            # Rotas públicas (/, /login)
+│   │   ├── (protected)/         # Rotas protegidas (dashboard, admin)
+│   │   ├── layout.tsx
+│   │   ├── globals.css
+│   │   └── ...
+│   ├── components/
+│   │   ├── AuthGuard.tsx
+│   │   ├── Header.tsx
+│   │   ├── InscricaoForm.tsx
+│   │   ├── ThreeCanvas.tsx      # Fundo 3D
+│   │   └── ToastProvider.tsx
+│   ├── lib/
+│   │   ├── api.ts               # Cliente Axios (modo mock ou real)
+│   │   └── auth.ts              # Login, logout, token
+│   └── package.json
+└── README.md                    # Este arquivo
+```
+
+---
+
+## 🔗 Endpoints da API (backend)
+
+| Método | Endpoint                          | Descrição                          | Acesso        |
+|--------|-----------------------------------|------------------------------------|---------------|
+| POST   | `/api/token/`                     | Login → tokens JWT + dados do user | público       |
+| POST   | `/api/inscricoes/`                | Cadastro de novo usuário           | público       |
+| GET    | `/api/artigos/`                   | Lista artigos do usuário logado    | autenticado   |
+| POST   | `/api/artigos/`                   | Submeter novo artigo (PDF)         | autenticado   |
+| GET    | `/api/admin/inscricoes/`          | Lista todos os participantes       | admin         |
+| GET    | `/api/admin/artigos/`             | Lista todos os artigos submetidos  | admin         |
+| DELETE | `/api/admin/limpar-dados/`        | Remove usuários comuns e artigos   | admin         |
+
+Os detalhes de cada endpoint (campos, exemplos) estão na documentação do backend (arquivo `backend/README.md` interno).
+
+---
+
+## 🌐 Rotas do frontend
+
+| Rota           | Público? | Descrição                                           |
+|----------------|----------|-----------------------------------------------------|
+| `/`            | ✅ Sim   | Landing page + formulário de inscrição              |
+| `/login`       | ✅ Sim   | Página de login                                     |
+| `/dashboard`   | ❌ Não   | Painel do usuário comum (submeter/ver artigos)      |
+| `/admin`       | ❌ Não   | Painel administrativo (gestão de inscrições/artigos)|
+
+---
+
+## 🔧 Modo MOCK (frontend sem backend)
+
+Caso queira testar apenas o layout do frontend sem executar o backend Django, o frontend possui um **modo mock** interno.
+
+- No arquivo `frontend/lib/api.ts`, altere `USE_MOCK = true`.
+- O frontend passará a simular todas as respostas da API.
+- O login é simulado: qualquer email que contenha `"admin"` será tratado como administrador.
+- **Nenhum dado é persistido** – útil para demonstração ou desenvolvimento offline.
+
+Para voltar a usar o backend real, mude `USE_MOCK = false`.
+
+---
+
+## 🧪 Fluxo completo de uso (com backend real)
+
+1. **Visitante** acessa `http://localhost:3000/`
+2. Preenche o formulário de inscrição e cria uma conta
+3. Após criar a conta, faz login em `/login`
+4. **Usuário comum** é redirecionado para `/dashboard`:
+   - Pode submeter um artigo (arquivo PDF)
+   - Visualiza seus artigos já submetidos
+5. **Administrador** (criado via `createsuperuser` no Django):
+   - Faz login e é redirecionado para `/admin`
+   - Visualiza todos os participantes e todos os artigos
+   - Pode usar o botão “Limpar dados de teste” para remover todos os usuários comuns e artigos
+
+---
+
+## 📦 Dependências principais
+
+### Backend (Django)
+```
+Django
+djangorestframework
+djangorestframework-simplejwt
+django-cors-headers
+```
+
+### Frontend (Next.js)
+```
+next
+react
+react-dom
+axios
+three
+```
+
+Ambos os projetos já possuem seus respectivos arquivos de dependências (`requirements.txt` e `package.json`).
+
+---
+
+## ⚙️ Configuração avançada
+
+### Backend – trocar SQLite por PostgreSQL
+Edite `backend/backend/settings.py`:
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'simposio',
+        'USER': 'postgres',
+        'PASSWORD': 'senha',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
+Não esqueça de instalar `psycopg2-binary` e rodar as migrações novamente.
+
+### Frontend – alterar URL da API
+Crie um arquivo `.env.local` no diretório `frontend/`:
+```
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+Ou, em produção, aponte para a URL do backend hospedado.
+
+### Segurança – token JWT
+O token de acesso expira após **1 hora**. Para implementar refresh token, utilize o endpoint `/api/token/refresh/` (já disponível no backend) e armazene o refresh token no frontend.
+
+---
+
+## 🐛 Problemas comuns e soluções
+
+| Problema                                   | Solução                                                                 |
+|--------------------------------------------|-------------------------------------------------------------------------|
+| Frontend não enxerga o backend             | Verifique se o backend está rodando em `http://localhost:8000` e se `USE_MOCK = false` |
+| CORS error no navegador                    | Certifique-se de que o backend tem `django-cors-headers` instalado e configurado em `settings.py` |
+| Erro de autenticação 401 (token inválido)  | Faça logout e login novamente; verifique se o token não expirou          |
+| Arquivo PDF não é salvo                    | Confirme que a pasta `backend/media/` tem permissão de escrita           |
+| Three.js não carrega (WebGL error)         | O componente `ThreeCanvas.tsx` já trata fallback – pode ser desabilitado removendo-o do `layout.tsx` |
+
+---
+
+## 📄 Licença
+
+Projeto desenvolvido para fins acadêmicos e educacionais no contexto do **Simpósio Coral Vivo**.
+
+---
+
+## 👥 Contribuição
+
+Para contribuir com melhorias, faça um fork do repositório e envie um Pull Request. Para reportar bugs, use a seção de Issues.
+
+---
+
+**Desenvolvido com Next.js, Django REST Framework e Three.js – que os corais floresçam! 🪸**
+```

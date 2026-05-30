@@ -39,3 +39,19 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+# Ambiente virtual Python
+venv/
+env/
+.venv
+env/
+*.pyc
+__pycache__/
+
+# Banco de dados SQLite
+*.sqlite3
+db.sqlite3
+
+# Diretório de mídia do Django
+backend/media/

@@ -24,12 +24,14 @@ interface Artigo {
     dataSubmissao: string;
     resumo: string;
     palavrasChave: string;
+    arquivo?: string;
 }
 
 export default function AdminPage() {
     const [inscritos, setInscritos] = useState<Inscrito[]>([]);
     const [artigos, setArtigos] = useState<Artigo[]>([]);
     const [loading, setLoading] = useState(true);
+    const [selectedArtigo, setSelectedArtigo] = useState<Artigo | null>(null); // controle do modal
     const { showToast } = useToast();
     const router = useRouter();
 
@@ -69,16 +71,30 @@ export default function AdminPage() {
         }
     };
 
+    const openModal = (artigo: Artigo) => {
+        setSelectedArtigo(artigo);
+    };
+
+    const closeModal = () => {
+        setSelectedArtigo(null);
+    };
+
     if (loading) return <div className="loading">Carregando...</div>;
 
     return (
         <AuthGuard requiredRole="admin">
-
             <div className="main-overlay">
                 <div className="admin-header">
                     <h2><span>📊</span> Painel Administrativo</h2>
                 </div>
-                <div className="admin-content">
+                <div
+                    className="admin-content"
+                    style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '1.5rem',
+                    }}
+                >
                     <div className="glass-card">
                         <div className="stats-grid">
                             <div className="stat-card"><div className="stat-number">{inscritos.length}</div><div className="stat-label">Inscritos</div></div>
@@ -102,21 +118,130 @@ export default function AdminPage() {
                     <div className="glass-card">
                         <h3>📄 Artigos Submetidos</h3>
                         <div className="table-wrapper">
-                            <table><thead><tr><th>Título</th><th>Autor</th><th>Área</th><th>Data</th></tr></thead>
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Título</th>
+                                        <th>Autor</th>
+                                        <th>Área</th>
+                                        <th>Data</th>
+                                        <th>Arquivo</th>
+                                    </tr>
+                                </thead>
                                 <tbody>
                                     {artigos.map(a => (
-                                        <tr key={a.id} className="clickable" onClick={() => alert(`Resumo: ${a.resumo}\nPalavras-chave: ${a.palavrasChave || "N/A"}`)}>
-                                            <td>{a.titulo}</td><td>{a.autorNome}</td><td>{a.area}</td><td>{new Date(a.dataSubmissao).toLocaleString()}</td>
+                                        <tr
+                                            key={a.id}
+                                            className="clickable"
+                                            onClick={() => openModal(a)}  // abre o modal com o artigo
+                                        >
+                                            <td>{a.titulo}</td>
+                                            <td>{a.autorNome}</td>
+                                            <td>{a.area}</td>
+                                            <td>{new Date(a.dataSubmissao).toLocaleString()}</td>
+                                            <td onClick={(e) => e.stopPropagation()}>
+                                                {a.arquivo ? (
+                                                    <a
+                                                        href={a.arquivo}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="btn btn-outline"
+                                                        style={{ padding: "0.25rem 0.75rem", fontSize: "0.8rem" }}
+                                                    >
+                                                        📄 Ver
+                                                    </a>
+                                                ) : (
+                                                    <span style={{ color: "var(--text-muted, #888)" }}>—</span>
+                                                )}
+                                            </td>
                                         </tr>
                                     ))}
-                                    {artigos.length === 0 && <tr><td colSpan={4}>Nenhum artigo</td></tr>}
-                                </tbody></table>
+                                    {artigos.length === 0 && <tr><td colSpan={5}>Nenhum artigo</td></tr>}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-
                 </div>
+
+                {/* Modal (popup) de detalhes do artigo */}
+                {selectedArtigo && (
+                    <div
+                        style={{
+                            position: 'fixed',
+                            top: 0,
+                            left: 0,
+                            width: '100%',
+                            height: '100%',
+                            backgroundColor: 'rgba(0,0,0,0.6)',
+                            backdropFilter: 'blur(4px)',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            zIndex: 1000,
+                        }}
+                        onClick={closeModal} // fecha ao clicar fora
+                    >
+                        <div
+                            style={{
+                                background: 'var(--glass-bg, rgba(10,20,40,0.9))',
+                                border: '1px solid var(--glass-border, rgba(255,255,255,0.2))',
+                                borderRadius: '1rem',
+                                padding: '2rem',
+                                maxWidth: '600px',
+                                width: '90%',
+                                maxHeight: '80vh',        // ← limite de altura
+                                overflowY: 'auto',        // ← rolagem interna quando necessário
+                                color: 'var(--text-color, #fff)',
+                                boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                                backdropFilter: 'blur(8px)',
+                                position: 'relative',
+                            }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <button
+                                onClick={closeModal}
+                                style={{
+                                    position: 'absolute',
+                                    top: '1rem',
+                                    right: '1rem',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    color: 'var(--text-muted, #aaa)',
+                                    fontSize: '1.5rem',
+                                    cursor: 'pointer',
+                                    lineHeight: 1,
+                                }}
+                            >
+                                ✕
+                            </button>
+                            <h3 style={{ marginBottom: '1rem', fontSize: '1.5rem' }}>{selectedArtigo.titulo}</h3>
+                            <p><strong>Autor:</strong> {selectedArtigo.autorNome}</p>
+                            <p><strong>Área:</strong> {selectedArtigo.area}</p>
+                            <p><strong>Data de Submissão:</strong> {new Date(selectedArtigo.dataSubmissao).toLocaleString()}</p>
+                            <div style={{ margin: '1rem 0' }}>
+                                <strong>Resumo:</strong>
+                                <p style={{ whiteSpace: 'pre-wrap', marginTop: '0.5rem', color: 'var(--text-muted, #ccc)' }}>{selectedArtigo.resumo}</p>
+                            </div>
+                            {selectedArtigo.palavrasChave && (
+                                <p><strong>Palavras-chave:</strong> {selectedArtigo.palavrasChave}</p>
+                            )}
+                            {selectedArtigo.arquivo && (
+                                <div style={{ marginTop: '1rem' }}>
+                                    <a
+                                        href={selectedArtigo.arquivo}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="btn btn-primary"
+                                        style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}
+                                    >
+                                        📄 Visualizar arquivo
+                                    </a>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </AuthGuard>
-
     );
 }
